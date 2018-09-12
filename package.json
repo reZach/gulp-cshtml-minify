@@ -1,0 +1,17 @@
+{
+  "name": "gulp-cshtml-minify",
+  "version": "1.0.0-alpha",
+  "description": "Minify .cshtml files with gulp",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "reZach",
+  "license": "MIT",
+  "devDependencies": {
+    "clean-css": "^4.2.1",
+    "readable-stream": "^3.0.2",
+    "replacestream": "^4.0.3",
+    "uglify-js": "^3.4.9"
+  }
+}
