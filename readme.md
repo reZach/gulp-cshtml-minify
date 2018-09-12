@@ -14,8 +14,8 @@ gulp.src("test.cshtml")
 
 # Features
 
-##### Handles <pre> blocks
+##### Handles 'pre' blocks
 
-##### Minifies inline <script> blocks with uglify-js
+##### Minifies inline 'script' blocks with uglify-js
 
-##### Minifies inline <style> blocks with clean-css
+##### Minifies inline 'style' blocks with clean-css
