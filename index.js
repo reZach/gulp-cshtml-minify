@@ -22,6 +22,7 @@ module.exports = function(options) {
           var temp = String(file.contents);
 
           // CLEAN UP FILE AND MINIMIZE IT
+          var keepIntegrity = 'pre,textarea';
 
           // Optimize all inline script blocks
           temp = temp.replace(/(<script.*?>)([\s\S]*?)(<\/script>)/gm, function(match, p1, p2, p3, offset, string){
@@ -49,20 +50,23 @@ module.exports = function(options) {
             }
           });
 
-          // Keep the integrity of <pre> blocks
-          var preBlockContents = [];
+          // Keep the integrity of these blocks
+          var integrityBlockContents = [];
+          var tags = keepIntegrity.split(',');
 
-          temp = temp.replace(/(<pre.*?>)([\s\S]*?)(<\/pre>)/gm, function(match, p1, p2, p3, offset, string){
+          for (var i = 0; i < tags.length; i++){
+            var reg = new RegExp("(<" + tags[i] + ".*?>)([\\s\\S]*?)(<\\/" + tags[i] + ">)", "gm");
 
-            var ret = "<d222222-" + preBlockContents.length + "></d222222>";
-            preBlockContents.push({
-              p1: p1,
-              p2: p2,
-              p3: p3  
+            temp = temp.replace(reg, function(match, p1, p2, p3, offset, string){
+              var contents = "<INTEGRITY-" + tags[i] + "-" + tags[i].length + "></INTEGRITY-" + tags[i] + "-" + tags[i].length + ">";
+              integrityBlockContents.push({
+                placeholder: contents,
+                original: p1 + p2 + p3
+              });
+
+              return contents;
             });
-
-            return ret;
-          });
+          }
 
           // Replace whitespace at beginning of lines
           temp = temp.replace(/^[\s\t]*/gm, '');
@@ -70,11 +74,9 @@ module.exports = function(options) {
           // Replace end of lines
           temp = temp.replace(/^((?!@:|@model|@using).+)\r?\n/gm, '$1');
           
-          // Re-insert <pre> blocks
-          for (var i = 0; i < preBlockContents.length; i++){
-
-            temp = temp.replace("<d222222-" + i + "></d222222>",
-              "\r\n" + preBlockContents[i].p1 + preBlockContents[i].p2 + preBlockContents[i].p3 + "\r\n");
+          // Re-insert blocks that have integrity
+          for (var i = 0; i < integrityBlockContents.length; i++){
+            temp = temp.replace(integrityBlockContents[i].placeholder, "\r\n" + integrityBlockContents[i].original + "\r\n");
           }
           
           file.contents = new Buffer(temp);

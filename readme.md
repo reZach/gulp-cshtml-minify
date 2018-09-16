@@ -7,13 +7,13 @@ var minifyCshtml = require('gulp-cshtml-minify'),
     gulp = require('gulp');
 
 gulp.src("test.cshtml")
-    .pipe(minify())
+    .pipe(minifyCshtml())
     .pipe(gulp.dest("result"));
 ```
 ---
 
 # Features
-1. Handles `<pre>` blocks properly
+1. Handles `<pre>` and `<textarea>` blocks properly
 2. Minifies inline `<script>` blocks with uglify-js
 3. Minifies inline `<style>` blocks with clean-css
 
