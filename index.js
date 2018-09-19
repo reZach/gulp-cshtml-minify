@@ -4,10 +4,26 @@ var rs = require('replacestream');
 var UglifyJS = require('uglify-js');
 var CleanCSS = require('clean-css');
 
-module.exports = function(options) {
+var defaultOptions = {
+  removeHtmlComments: true,
+  comments: []
+};
+
+if (defaultOptions.removeHtmlComments) {
+  defaultOptions.comments = [{
+    start: "<!--",
+    end: "-->"
+  }];
+}
+
+module.exports = function (options) {
+  if (typeof options === "undefined") {
+    options = defaultOptions;
+  }
+
   return new Transform({
     objectMode: true,
-    transform: function(file, enc, callback) {
+    transform: function (file, enc, callback) {
       if (file.isNull()) {
         return callback(null, file);
       }
@@ -25,12 +41,12 @@ module.exports = function(options) {
           var keepIntegrity = 'pre,textarea';
 
           // Optimize all inline script blocks
-          temp = temp.replace(/(<script.*?>)([\s\S]*?)(<\/script>)/gm, function(match, p1, p2, p3, offset, string){
+          temp = temp.replace(/(<script.*?>)([\s\S]*?)(<\/script>)/gm, function (match, p1, p2, p3, offset, string) {
             var minification = UglifyJS.minify(p2);
 
             // Will NOT minify <script> blocks if we
             // find any razor code inside of it
-            if (!minification.error && p2.match(/(@\(|@{)/) === null){
+            if (!minification.error && p2.match(/(@\(|@{)/) === null) {
               return p1 + minification.code + p3;
             } else {
               return p1 + p2 + p3;
@@ -38,12 +54,12 @@ module.exports = function(options) {
           });
 
           // Optimize all inline css blocks
-          temp = temp.replace(/(<style.*?>)([\s\S]*?)(<\/style>)/gm, function(match, p1, p2, p3, offset, string){
+          temp = temp.replace(/(<style.*?>)([\s\S]*?)(<\/style>)/gm, function (match, p1, p2, p3, offset, string) {
             var minification = new CleanCSS().minify(p2);
 
             // Will NOT minify <style> blocks if we
             // find any razor code inside of it
-            if (!minification.errors && p2.match(/(@\(|@{)/) === null){
+            if (!minification.errors && p2.match(/(@\(|@{)/) === null) {
               return p1 + minification.styles + p3;
             } else {
               return p1 + p2 + p3;
@@ -54,10 +70,10 @@ module.exports = function(options) {
           var integrityBlockContents = [];
           var tags = keepIntegrity.split(',');
 
-          for (var i = 0; i < tags.length; i++){
+          for (var i = 0; i < tags.length; i++) {
             var reg = new RegExp("(<" + tags[i] + ".*?>)([\\s\\S]*?)(<\\/" + tags[i] + ">)", "gm");
 
-            temp = temp.replace(reg, function(match, p1, p2, p3, offset, string){
+            temp = temp.replace(reg, function (match, p1, p2, p3, offset, string) {
               var contents = "<INTEGRITY-" + tags[i] + "-" + tags[i].length + "></INTEGRITY-" + tags[i] + "-" + tags[i].length + ">";
               integrityBlockContents.push({
                 placeholder: contents,
@@ -73,12 +89,24 @@ module.exports = function(options) {
 
           // Replace end of lines
           temp = temp.replace(/^((?!@:|@model|@using).+)\r?\n/gm, '$1');
-          
-          // Re-insert blocks that have integrity
-          for (var i = 0; i < integrityBlockContents.length; i++){
-            temp = temp.replace(integrityBlockContents[i].placeholder, "\r\n" + integrityBlockContents[i].original + "\r\n");
+
+          // Replace any comments
+          for (var i = 0; i < options.comments.length; i++) {
+
+            // Validate
+            if (typeof options.comments[i].start !== "undefined" &&
+              typeof options.comments[i].end !== "undefined") {
+
+              var reg = new RegExp(options.comments[i].start + "([\\s\\S]*?)" + options.comments[i].end, "gm");
+              temp = temp.replace(reg, "");
+            }
           }
-          
+
+          // Re-insert blocks that have integrity
+          for (var i = 0; i < integrityBlockContents.length; i++) {
+            temp = temp.replace(integrityBlockContents[i].placeholder, "\r\n" + integrityBlockContents[i].original);
+          }
+
           file.contents = new Buffer(temp);
 
           return callback(null, file);

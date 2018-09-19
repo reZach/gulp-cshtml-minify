@@ -1,4 +1,10 @@
-An attempt to minimize .cshtml files with gulp.
+Unless you are building mission-critical web applications, you don't need every single optimization in order
+to minimize your HTML/.cshtml. You need the optimizations that give you the most bang for your buck. This library 
+follows the same goals and makes the optimizations that 90% of your code can benefit from, saving the 10% for you
+to handle on your own. 
+
+This library/package is meant to be used at *compile time* in order to reduce any overhead that a runtime 
+.cshtml minifier might incur.
  
 
 # Usage
@@ -12,15 +18,19 @@ gulp.src("test.cshtml")
 ```
 ---
 
-# Features
-1. Handles `<pre>` and `<textarea>` blocks properly
-2. Minifies inline `<script>` blocks with uglify-js
-3. Minifies inline `<style>` blocks with clean-css
+# Features / roadmap
+- [X] Removes leading and trailing whitespace
+- [X] Handles `@using` and `@model` directives
+- [X] Preserves `<pre>` and `<textarea>` blocks properly
+- [X] Removes HTML comments
+- [X] Minifies inline `<script>` blocks with uglify-js
+- [X] Minifies inline `<style>` blocks with clean-css
+- [ ] ?
 
 # Sample
 ### Input
 ```
-@model Be.An.NS
+@model MyDomain.Project.Model
 @using Microsoft.AspNetCore.Http.Features
 
 @{
@@ -29,7 +39,7 @@ gulp.src("test.cshtml")
     var cookieString = consentFeature?.CreateConsentCookie();
 }
 
-<style>
+<style type="text/css">
     body{
         color:red;
         margin:0 15px 2.5rem 25px;
@@ -54,9 +64,10 @@ gulp.src("test.cshtml")
                 <span class="navbar-brand"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></span>
             </div>
             <div class="collapse navbar-collapse">
+                <!-- 
                 <p class="navbar-text">
                     Use this space to summarize your privacy and cookie use policy.
-                </p>
+                </p> -->
                 <div class="navbar-right">
                     <a asp-controller="Home" asp-action="Privacy" class="btn btn-info navbar-btn">Learn More</a>
                     <button type="button" class="btn btn-default navbar-btn" data-cookie-string="@cookieString">Accept</button>
@@ -70,7 +81,7 @@ gulp.src("test.cshtml")
             </div>
         </div>
     </nav>
-    <script>
+    <script type="text/javascript">
         (function () {
             document.querySelector("#cookieConsent button[data-cookie-string]").addEventListener("click", function (el) {
                 document.cookie = el.target.dataset.cookieString;
@@ -88,14 +99,19 @@ gulp.src("test.cshtml")
 
 ### Output
 ```
-@model Be.An.NS
+@model MyDomain.Project.Model
 @using Microsoft.AspNetCore.Http.Features
-@{var consentFeature = Context.Features.Get<ITrackingConsentFeature>();var showBanner = !consentFeature?.CanTrack ?? false;var cookieString = consentFeature?.CreateConsentCookie();}<style>body{color:red;margin:0 15px 2.5rem 25px;}.card .header{float:left;}</style>@if (showBanner){<nav id="cookieConsent" class="navbar navbar-default navbar-fixed-top" role="alert"><div class="container"><div class="navbar-header"><button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#cookieConsent .navbar-collapse"><span class="sr-only">Toggle cookie consent banner</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><span class="navbar-brand"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></span></div><div class="collapse navbar-collapse"><p class="navbar-text">Use this space to summarize your privacy and cookie use policy.</p><div class="navbar-right"><a asp-controller="Home" asp-action="Privacy" class="btn btn-info navbar-btn">Learn More</a><button type="button" class="btn btn-default navbar-btn" data-cookie-string="@cookieString">Accept</button></div>
+@{var consentFeature = Context.Features.Get<ITrackingConsentFeature>();var showBanner = !consentFeature?.CanTrack ?? false;var cookieString = consentFeature?.CreateConsentCookie();}<style type="text/css">body{color:red;margin:0 15px 2.5rem 25px;}.card .header{float:left;}</style>@if (showBanner){<nav id="cookieConsent" class="navbar navbar-default navbar-fixed-top" role="alert"><div class="container"><div class="navbar-header"><button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#cookieConsent .navbar-collapse"><span class="sr-only">Toggle cookie consent banner</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><span class="navbar-brand"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></span></div><div class="collapse navbar-collapse"><div class="navbar-right"><a asp-controller="Home" asp-action="Privacy" class="btn btn-info navbar-btn">Learn More</a><button type="button" class="btn btn-default navbar-btn" data-cookie-string="@cookieString">Accept</button></div>
 <pre>
                         I should
                         not
                         be
                         minified
-                </pre>
-</div></div></nav><script>!function(){document.querySelector("#cookieConsent button[data-cookie-string]").addEventListener("click",function(e){document.cookie=e.target.dataset.cookieString,document.querySelector("#cookieConsent").classList.add("hidden")},!1);console.log(5)}();</script>}
+                </pre></div></div></nav><script type="text/javascript">!function(){document.querySelector("#cookieConsent button[data-cookie-string]").addEventListener("click",function(e){document.cookie=e.target.dataset.cookieString,document.querySelector("#cookieConsent").classList.add("hidden")},!1);console.log(5)}();</script>}
 ```
+
+# Other options
+In case we couldn't help you, there are other options you may want to try to reduce your .cshtml:
+
+* [https://github.com/Taritsyn/WebMarkupMin](https://github.com/Taritsyn/WebMarkupMin) (.net runtime middleware)
+* [https://github.com/deanhume/html-minifier](https://github.com/deanhume/html-minifier) (.exe that processes files)
