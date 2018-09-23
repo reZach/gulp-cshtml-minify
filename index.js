@@ -4,21 +4,42 @@ var rs = require('replacestream');
 var UglifyJS = require('uglify-js');
 var CleanCSS = require('clean-css');
 
+
+
+// Configure all options we can enable
 var defaultOptions = {
   removeHtmlComments: true,
+  removeRazorComments: true,
+  minifyCss: true,
+  minifyJs: true,
+  collapseWhitespace: false,
+  optionalClosingTags: true,
+  urlSchemes: true,
   comments: []
 };
 
+// Pre-process options
 if (defaultOptions.removeHtmlComments) {
-  defaultOptions.comments = [{
+  defaultOptions.comments.push({
     start: "<!--",
     end: "-->"
-  }];
+  });
+}
+if (defaultOptions.removeRazorComments) {
+  defaultOptions.comments.push({
+    start: "@\\*",
+    end: "\\*@"
+  });
 }
 
+
+// Module to export
 module.exports = function (options) {
   if (typeof options === "undefined") {
     options = defaultOptions;
+  } else {
+    var userRequested = Object.assign(defaultOptions, options);
+    options = userRequested;
   }
 
   return new Transform({
@@ -36,35 +57,41 @@ module.exports = function (options) {
 
         if (file.isBuffer()) {
           var temp = String(file.contents);
-
+          
           // CLEAN UP FILE AND MINIMIZE IT
           var keepIntegrity = 'pre,textarea';
+          var voidElements = 'area,base,br,col,command,embed,hr,img,input,keygen,link,meta,param,source,track,wbr';
 
           // Optimize all inline script blocks
-          temp = temp.replace(/(<script.*?>)([\s\S]*?)(<\/script>)/gm, function (match, p1, p2, p3, offset, string) {
-            var minification = UglifyJS.minify(p2);
+          if (options.minifyJs) {
+            temp = temp.replace(/(<script.*?>)([\s\S]*?)(<\/script>)/gm, function (match, p1, p2, p3, offset, string) {
+              var minification = UglifyJS.minify(p2);
 
-            // Will NOT minify <script> blocks if we
-            // find any razor code inside of it
-            if (!minification.error && p2.match(/(@\(|@{)/) === null) {
-              return p1 + minification.code + p3;
-            } else {
-              return p1 + p2 + p3;
-            }
-          });
+              // Will NOT minify <script> blocks if we
+              // find any razor code inside of it
+              if (!minification.error && p2.match(/(@\(|@{)/) === null) {
+                return p1 + minification.code + p3;
+              } else {
+                return p1 + p2 + p3;
+              }
+            });
+          }
 
           // Optimize all inline css blocks
-          temp = temp.replace(/(<style.*?>)([\s\S]*?)(<\/style>)/gm, function (match, p1, p2, p3, offset, string) {
-            var minification = new CleanCSS().minify(p2);
+          if (options.minifyCss) {
+            temp = temp.replace(/(<style.*?>)([\s\S]*?)(<\/style>)/gm, function (match, p1, p2, p3, offset, string) {
+              var minification = new CleanCSS().minify(p2);
 
-            // Will NOT minify <style> blocks if we
-            // find any razor code inside of it
-            if (!minification.errors && p2.match(/(@\(|@{)/) === null) {
-              return p1 + minification.styles + p3;
-            } else {
-              return p1 + p2 + p3;
-            }
-          });
+              // Will NOT minify <style> blocks if we
+              // find any razor code inside of it
+              if (!minification.errors && p2.match(/(@\(|@{)/) === null) {
+                return p1 + minification.styles + p3;
+              } else {
+                return p1 + p2 + p3;
+              }
+            });
+          }
+
 
           // Keep the integrity of these blocks
           var integrityBlockContents = [];
@@ -86,21 +113,51 @@ module.exports = function (options) {
 
           // Remove optional tags
           // https://www.w3.org/TR/html5/syntax.html#optional-tags
-          temp = temp.replace(/(<\/head>|<\/body>|<\/html>|<\/li>|<\/rt>|<\/rp>|<\/optgroup>|<\/option>|<\/td>|<\/th>|<\/p>)/gm, "");
+          if (options.optionalClosingTags) {
+            temp = temp.replace(/(<\/body>|<\/html>|<\/li>|<\/rt>|<\/rp>|<\/optgroup>|<\/option>|<\/td>|<\/th>|<\/p>)/gm, "");
+          }
 
-          // Replace whitespace at beginning of lines
-          temp = temp.replace(/^[\s\t]*/gm, '');
+          // Remove trailing slash on the void tags
+          var voidTags = voidElements.split(",");
+          for (var i = 0; i < voidTags.length; i++){
+            
+            var reg = new RegExp("(<" + voidTags[i] + ".+)(\\s\\/>)", "gm");
+            temp = temp.replace(reg, "$1>");
+            reg = new RegExp("(<" + voidTags[i] + ".+)(\\/>)", "gm");
+            temp = temp.replace(reg, "$1>");
+          }
 
+          // Collapse whitespace within tag attributes
+          temp = temp.replace(/(\S+)\s*=\s*([']|[\"])([\W\w]*?)\2/gm, function(match, p1, p2, p3, offset, string){
+            var quotesNeeded = p3.match(/[\s<>`\/=@]/gm);
+            var value = options.urlSchemes ? p3.replace(/https?:\/\//gm, "//") : p3;
+
+            if (!quotesNeeded){
+              return p1 + "=" + value;
+            } else {
+              return p1 + "=" + p2 + value + p2;
+            }
+          });
+
+          // Replace whitespace at beginning of lines;
+          // breaks razor @ directives if on!
+          if (options.collapseWhitespace) {
+            temp = temp.replace(/^[\s\t]*/gm, ' ');
+          } else {
+            temp = temp.replace(/^[\s\t]*/gm, '');
+          }
+
+          
           // Replace end of lines
-          temp = temp.replace(/^((?!@:|@model|@using).+)\r?\n/gm, '$1');
+          temp = temp.replace(/^((?!@:|@model|@using).+)\r?\n/gm, "$1");
 
           // Replace any comments
           for (var i = 0; i < options.comments.length; i++) {
-
             // Validate
             if (typeof options.comments[i].start !== "undefined" &&
               typeof options.comments[i].end !== "undefined") {
 
+              
               var reg = new RegExp(options.comments[i].start + "([\\s\\S]*?)" + options.comments[i].end, "gm");
               temp = temp.replace(reg, "");
             }
@@ -110,9 +167,8 @@ module.exports = function (options) {
           for (var i = 0; i < integrityBlockContents.length; i++) {
             temp = temp.replace(integrityBlockContents[i].placeholder, "\r\n" + integrityBlockContents[i].original);
           }
-
+          
           file.contents = new Buffer(temp);
-
           return callback(null, file);
         }
 
