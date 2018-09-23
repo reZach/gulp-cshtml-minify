@@ -1,6 +1,6 @@
 {
   "name": "gulp-cshtml-minify",
-  "version": "1.0.4-alpha",
+  "version": "1.0.5-alpha",
   "description": "Minify .cshtml files with gulp",
   "main": "index.js",
   "scripts": {

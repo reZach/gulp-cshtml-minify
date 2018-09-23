@@ -20,11 +20,20 @@ gulp.src("test.cshtml")
 
 # Features / roadmap
 - [X] Removes leading and trailing whitespace
+- [ ] Add option to collapse whitespace to one space instead
 - [X] Handles `@using` and `@model` directives
 - [X] Preserves `<pre>` and `<textarea>` blocks properly
 - [X] Removes HTML comments
+- [ ] Removes Razor comments
 - [X] Minifies inline `<script>` blocks with uglify-js
 - [X] Minifies inline `<style>` blocks with clean-css
+- [ ] Add option to toggle script minification
+- [ ] Add option to toggle style minification
+- [X] Remove optional end tags
+- [ ] Collapse whitespace within tag attributes
+- [ ] Remove quotes around eligible tag attribute values
+- [ ] Remove optional `<meta>` closing slash
+- [ ] Remove url schemes
 - [ ] ?
 
 # Sample

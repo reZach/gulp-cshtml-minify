@@ -84,6 +84,10 @@ module.exports = function (options) {
             });
           }
 
+          // Remove optional tags
+          // https://www.w3.org/TR/html5/syntax.html#optional-tags
+          temp = temp.replace(/(<\/head>|<\/body>|<\/html>|<\/li>|<\/rt>|<\/rp>|<\/optgroup>|<\/option>|<\/td>|<\/th>|<\/p>)/gm, "");
+
           // Replace whitespace at beginning of lines
           temp = temp.replace(/^[\s\t]*/gm, '');
 
