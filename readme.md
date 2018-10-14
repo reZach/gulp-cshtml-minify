@@ -62,7 +62,7 @@ I have taken random pages from different websites to show you the performance of
 
 | Url        | Original           | Minified  | Savings |
 | ------------- |-------------| ----- | ----- |
-| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match | 112.9KB | 97KB | 15%
-| https://www.vox.com/2018/9/21/17886892/star-wars-release-schedule-disney-bob-iger | 157.5KB | 138KB | 12.4%
-| https://www.foodnetwork.com/healthyeats/news/2018/9/dairy-free-ice-creams-favorites | 151.8KB | 126.2KB | 17%
-| https://www.olivegarden.com/menu-listing/dinner | 620.1KB | 536.9KB | 14%
+| [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match) | 112.9KB | 97KB | 15%
+| [Vox](https://www.vox.com/2018/9/21/17886892/star-wars-release-schedule-disney-bob-iger) | 157.5KB | 138KB | 12.4%
+| [Food Network](https://www.foodnetwork.com/healthyeats/news/2018/9/dairy-free-ice-creams-favorites) | 151.8KB | 126.2KB | 17%
+| [Olive Garden](https://www.olivegarden.com/menu-listing/dinner) | 620.1KB | 536.9KB | 14%
