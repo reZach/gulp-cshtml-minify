@@ -128,7 +128,7 @@ module.exports = function (options) {
           }
 
           // Collapse whitespace within tag attributes
-          temp = temp.replace(/(\S+)\s*=\s*([']|[\"])([\W\w]*?)\2/gm, function(match, p1, p2, p3, offset, string){
+          temp = temp.replace(/([a-zA-Z0-9-_]+)\s*=\s*([']|[\"])([\W\w]*?)\2/gm, function(match, p1, p2, p3, offset, string){
             var quotesNeeded = p3.match(/[\s<>`\/=@]/gm);
             var value = options.urlSchemes ? p3.replace(/https?:\/\//gm, "//") : p3;
 
@@ -149,7 +149,7 @@ module.exports = function (options) {
 
           
           // Replace end of lines
-          temp = temp.replace(/^((?!@:|@model|@using).+)\r?\n/gm, "$1");
+          temp = temp.replace(/^((?!@:|@model|@using).+)(\r\n|\r|\n)/gm, "$1");
 
           // Replace any comments
           for (var i = 0; i < options.comments.length; i++) {
