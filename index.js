@@ -10,12 +10,15 @@ var CleanCSS = require('clean-css');
 var defaultOptions = {
   removeHtmlComments: true,
   removeRazorComments: true,
+  removeCssComments: true,
   minifyCss: true,
   minifyJs: true,
   collapseWhitespace: false,
   optionalClosingTags: true,
   urlSchemes: true,
-  comments: []
+  comments: [],
+  uglifyjsOptions: {},
+  cleancssOptions: {}
 };
 
 // Pre-process options
@@ -65,7 +68,7 @@ module.exports = function (options) {
           // Optimize all inline script blocks
           if (options.minifyJs) {
             temp = temp.replace(/(<script.*?>)([\s\S]*?)(<\/script>)/gm, function (match, p1, p2, p3, offset, string) {
-              var minification = UglifyJS.minify(p2);
+              var minification = UglifyJS.minify(p2, options.uglifyjsOptions);
 
               // Will NOT minify <script> blocks if we
               // find any razor code inside of it
@@ -80,7 +83,7 @@ module.exports = function (options) {
           // Optimize all inline css blocks
           if (options.minifyCss) {
             temp = temp.replace(/(<style.*?>)([\s\S]*?)(<\/style>)/gm, function (match, p1, p2, p3, offset, string) {
-              var minification = new CleanCSS().minify(p2);
+              var minification = new CleanCSS(options.cleancssOptions).minify(p2);
 
               // Will NOT minify <style> blocks if we
               // find any razor code inside of it
@@ -162,6 +165,12 @@ module.exports = function (options) {
               temp = temp.replace(reg, "");
             }
           }
+          // Replace css comments
+          // if (options.removeCssComments){
+          //   var reg = new RegExp("(<style.*?>)([\\s\\S]*?)(<\\/style>)", "gm");
+          //   var 
+          //   temp = temp.replace(//gm, '');
+          // }
 
           // Re-insert blocks that have integrity
           for (var i = 0; i < integrityBlockContents.length; i++) {

@@ -6,6 +6,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "minification",
+    "minify",
+    "cshtml",
+    "html"
+  ],
   "author": "reZach",
   "homepage": "https://github.com/reZach/gulp-cshtml-minify",
   "license": "MIT",

@@ -46,7 +46,9 @@ gulp.src("test.cshtml")
         minifyJs: true,
         collapseWhitespace: false, /* collapses whitespace to one space */
         optionalClosingTags: true, /* removes optional tags */
-        urlSchemes: true /* https:// -> // */
+        urlSchemes: true, /* https:// -> // */
+        uglifyjsOptions: {}, /* options for uglifyjs */
+        cleancssOptions: {} /* options for cleancss */
     }))
     .pipe(gulp.dest("result"));
 ```
