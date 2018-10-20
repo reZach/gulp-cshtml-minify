@@ -60,7 +60,7 @@ module.exports = function (options) {
 
         if (file.isBuffer()) {
           var temp = String(file.contents);
-          
+
           // CLEAN UP FILE AND MINIMIZE IT
           var keepIntegrity = 'pre,textarea';
           var voidElements = 'area,base,br,col,command,embed,hr,img,input,keygen,link,meta,param,source,track,wbr';
@@ -122,8 +122,8 @@ module.exports = function (options) {
 
           // Remove trailing slash on the void tags
           var voidTags = voidElements.split(",");
-          for (var i = 0; i < voidTags.length; i++){
-            
+          for (var i = 0; i < voidTags.length; i++) {
+
             var reg = new RegExp("(<" + voidTags[i] + ".+)(\\s\\/>)", "gm");
             temp = temp.replace(reg, "$1>");
             reg = new RegExp("(<" + voidTags[i] + ".+)(\\/>)", "gm");
@@ -131,11 +131,11 @@ module.exports = function (options) {
           }
 
           // Collapse whitespace within tag attributes
-          temp = temp.replace(/([a-zA-Z0-9-_]+)\s*=\s*([']|[\"])([\W\w]*?)\2/gm, function(match, p1, p2, p3, offset, string){
+          temp = temp.replace(/([a-zA-Z0-9-_]+)\s*=\s*([']|[\"])([\W\w]*?)\2/gm, function (match, p1, p2, p3, offset, string) {
             var quotesNeeded = p3.match(/[\s<>`\/=@]/gm);
             var value = options.urlSchemes ? p3.replace(/https?:\/\//gm, "//") : p3;
 
-            if (!quotesNeeded){
+            if (!quotesNeeded) {
               return p1 + "=" + value;
             } else {
               return p1 + "=" + p2 + value + p2;
@@ -150,7 +150,7 @@ module.exports = function (options) {
             temp = temp.replace(/^[\s\t]*/gm, '');
           }
 
-          
+
           // Replace end of lines
           temp = temp.replace(/^((?!@:|@model|@using|@inject).+)(\r\n|\r|\n)/gm, "$1");
 
@@ -160,23 +160,27 @@ module.exports = function (options) {
             if (typeof options.comments[i].start !== "undefined" &&
               typeof options.comments[i].end !== "undefined") {
 
-              
+
               var reg = new RegExp(options.comments[i].start + "([\\s\\S]*?)" + options.comments[i].end, "gm");
               temp = temp.replace(reg, "");
             }
           }
           // Replace css comments
-          // if (options.removeCssComments){
-          //   var reg = new RegExp("(<style.*?>)([\\s\\S]*?)(<\\/style>)", "gm");
-          //   var 
-          //   temp = temp.replace(//gm, '');
-          // }
+          if (options.removeCssComments) {
+            var reg = new RegExp("(<style.*?>)([\\s\\S]*?)(<\\/style>)", "gm");
+
+            temp = temp.replace(reg, function (match, p1, p2, p3, offset, string) {
+              p2 = p2.replace(/\/\*[\s\S]*?\*\//gm, '');
+              
+              return p1 + p2 + p3;
+            });
+          }
 
           // Re-insert blocks that have integrity
           for (var i = 0; i < integrityBlockContents.length; i++) {
             temp = temp.replace(integrityBlockContents[i].placeholder, "\r\n" + integrityBlockContents[i].original);
           }
-          
+
           file.contents = new Buffer(temp);
           return callback(null, file);
         }

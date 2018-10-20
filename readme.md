@@ -11,7 +11,7 @@ Why not use [another minification library that's recommended by Google](https://
 This minification library works by taking the biggest offenders to page weight and nullifies them. We reduce the number of bytes your .cshtml/html is made of, which makes it quicker to send the page to the end user. What do we do exactly? The list isn't comprehensive (and more features are being added), but here is what we have right now:
 
 - [X] Removes leading/trailing whitespace
-- [X] Removes HTML/Razor comments
+- [X] Removes HTML/Razor/CSS comments
 - [X] Minifies inline `<script>` blocks with [uglify-js](https://www.npmjs.com/package/uglify-js)
 - [X] Minifies inline `<style>` blocks with [clean-css](https://www.npmjs.com/package/clean-css)
 - [X] Remove optional closing tags
@@ -42,6 +42,7 @@ gulp.src("test.cshtml")
     .pipe(minifyCshtml({
         removeHtmlComments: true,
         removeRazorComments: true,
+        removeCssComments: true,
         minifyCss: true,
         minifyJs: true,
         collapseWhitespace: false, /* collapses whitespace to one space */
