@@ -152,7 +152,7 @@ module.exports = function (options) {
 
 
           // Replace end of lines
-          temp = temp.replace(/^((?!@:|@model|@using|@inject).+)(\r\n|\r|\n)/gm, "$1");
+          temp = temp.replace(/^((?!@:|@model|@using|@inject|@section).+)(\r\n|\r|\n)/gm, "$1");
 
           // Replace any comments
           for (var i = 0; i < options.comments.length; i++) {
