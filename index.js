@@ -1,13 +1,13 @@
 'use strict';
-var Transform = require('readable-stream').Transform;
-var rs = require('replacestream');
-var UglifyJS = require('uglify-js');
-var CleanCSS = require('clean-css');
+const Transform = require('readable-stream').Transform;
+const rs = require('replacestream');
+const UglifyJS = require('uglify-js');
+const CleanCSS = require('clean-css');
 
 
 
 // Configure all options we can enable
-var defaultOptions = {
+let defaultOptions = {
   removeHtmlComments: true,
   removeRazorComments: true,
   removeCssComments: true,
@@ -41,13 +41,13 @@ module.exports = function (options) {
   if (typeof options === "undefined") {
     options = defaultOptions;
   } else {
-    var userRequested = Object.assign(defaultOptions, options);
+    const userRequested = Object.assign(defaultOptions, options);
     options = userRequested;
   }
 
   return new Transform({
     objectMode: true,
-    transform: function (file, enc, callback) {
+    transform: function (file, _enc, callback) {
       if (file.isNull()) {
         return callback(null, file);
       }
@@ -59,16 +59,16 @@ module.exports = function (options) {
         }
 
         if (file.isBuffer()) {
-          var temp = String(file.contents);
+          let temp = String(file.contents);
 
           // CLEAN UP FILE AND MINIMIZE IT
-          var keepIntegrity = 'pre,textarea';
-          var voidElements = 'area,base,br,col,command,embed,hr,img,input,keygen,link,meta,param,source,track,wbr';
+          const keepIntegrity = 'pre,textarea';
+          const voidElements = 'area,base,br,col,command,embed,hr,img,input,keygen,link,meta,param,source,track,wbr';
 
           // Optimize all inline script blocks
           if (options.minifyJs) {
-            temp = temp.replace(/(<script.*?>)([\s\S]*?)(<\/script>)/gm, function (match, p1, p2, p3, offset, string) {
-              var minification = UglifyJS.minify(p2, options.uglifyjsOptions);
+            temp = temp.replace(/(<script.*?>)([\s\S]*?)(<\/script>)/gm, function (_match, p1, p2, p3, _offset, _string) {
+              const minification = UglifyJS.minify(p2, options.uglifyjsOptions);
 
               // Will NOT minify <script> blocks if we
               // find any razor code inside of it
@@ -82,8 +82,8 @@ module.exports = function (options) {
 
           // Optimize all inline css blocks
           if (options.minifyCss) {
-            temp = temp.replace(/(<style.*?>)([\s\S]*?)(<\/style>)/gm, function (match, p1, p2, p3, offset, string) {
-              var minification = new CleanCSS(options.cleancssOptions).minify(p2);
+            temp = temp.replace(/(<style.*?>)([\s\S]*?)(<\/style>)/gm, function (_match, p1, p2, p3, _offset, _string) {
+              const minification = new CleanCSS(options.cleancssOptions).minify(p2);
 
               // Will NOT minify <style> blocks if we
               // find any razor code inside of it
@@ -97,14 +97,14 @@ module.exports = function (options) {
 
 
           // Keep the integrity of these blocks
-          var integrityBlockContents = [];
-          var tags = keepIntegrity.split(',');
+          let integrityBlockContents = [];
+          const tags = keepIntegrity.split(',');
 
-          for (var i = 0; i < tags.length; i++) {
-            var reg = new RegExp("(<" + tags[i] + ".*?>)([\\s\\S]*?)(<\\/" + tags[i] + ">)", "gm");
+          for (let i = 0; i < tags.length; i++) {
+            const reg = new RegExp("(<" + tags[i] + ".*?>)([\\s\\S]*?)(<\\/" + tags[i] + ">)", "gm");
 
-            temp = temp.replace(reg, function (match, p1, p2, p3, offset, string) {
-              var contents = "<INTEGRITY-" + tags[i] + "-" + tags[i].length + "></INTEGRITY-" + tags[i] + "-" + tags[i].length + ">";
+            temp = temp.replace(reg, function (_match, p1, p2, p3, _offset, _string) {
+              const contents = "<INTEGRITY-" + tags[i] + "-" + tags[i].length + "></INTEGRITY-" + tags[i] + "-" + tags[i].length + ">";
               integrityBlockContents.push({
                 placeholder: contents,
                 original: p1 + p2 + p3
@@ -121,19 +121,19 @@ module.exports = function (options) {
           }
 
           // Remove trailing slash on the void tags
-          var voidTags = voidElements.split(",");
-          for (var i = 0; i < voidTags.length; i++) {
+          const voidTags = voidElements.split(",");
+          for (let i = 0; i < voidTags.length; i++) {
 
-            var reg = new RegExp("(<" + voidTags[i] + ".+)(\\s\\/>)", "gm");
+            let reg = new RegExp("(<" + voidTags[i] + ".+)(\\s\\/>)", "gm");
             temp = temp.replace(reg, "$1>");
             reg = new RegExp("(<" + voidTags[i] + ".+)(\\/>)", "gm");
             temp = temp.replace(reg, "$1>");
           }
 
           // Collapse whitespace within tag attributes
-          temp = temp.replace(/([a-zA-Z0-9-_]+)\s*=\s*([']|[\"])([\W\w]*?)\2/gm, function (match, p1, p2, p3, offset, string) {
-            var quotesNeeded = p3.match(/[\s<>`\/=@]/gm);
-            var value = options.urlSchemes ? p3.replace(/https?:\/\//gm, "//") : p3;
+          temp = temp.replace(/([a-zA-Z0-9-_]+)\s*=\s*([']|[\"])([\W\w]*?)\2/gm, function (_match, p1, p2, p3, _offset, _string) {
+            const quotesNeeded = p3.match(/[\s<>`\/=@]/gm);
+            const value = options.urlSchemes ? p3.replace(/https?:\/\//gm, "//") : p3;
 
             if (!quotesNeeded) {
               return p1 + "=" + value;
@@ -155,29 +155,29 @@ module.exports = function (options) {
           temp = temp.replace(/^((?!@:|@model|@using|@inject).+)(\r\n|\r|\n)/gm, "$1");
 
           // Replace any comments
-          for (var i = 0; i < options.comments.length; i++) {
+          for (let i = 0; i < options.comments.length; i++) {
             // Validate
             if (typeof options.comments[i].start !== "undefined" &&
               typeof options.comments[i].end !== "undefined") {
 
 
-              var reg = new RegExp(options.comments[i].start + "([\\s\\S]*?)" + options.comments[i].end, "gm");
+              const reg = new RegExp(options.comments[i].start + "([\\s\\S]*?)" + options.comments[i].end, "gm");
               temp = temp.replace(reg, "");
             }
           }
           // Replace css comments
           if (options.removeCssComments) {
-            var reg = new RegExp("(<style.*?>)([\\s\\S]*?)(<\\/style>)", "gm");
+            const reg = new RegExp("(<style.*?>)([\\s\\S]*?)(<\\/style>)", "gm");
 
-            temp = temp.replace(reg, function (match, p1, p2, p3, offset, string) {
+            temp = temp.replace(reg, function (_match, p1, p2, p3, _offset, _string) {
               p2 = p2.replace(/\/\*[\s\S]*?\*\//gm, '');
-              
+
               return p1 + p2 + p3;
             });
           }
 
           // Re-insert blocks that have integrity
-          for (var i = 0; i < integrityBlockContents.length; i++) {
+          for (let i = 0; i < integrityBlockContents.length; i++) {
             temp = temp.replace(integrityBlockContents[i].placeholder, "\r\n" + integrityBlockContents[i].original);
           }
 
