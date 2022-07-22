@@ -145,9 +145,9 @@ module.exports = function (options) {
           // Replace whitespace at beginning of lines;
           // breaks razor @ directives if on!
           if (options.collapseWhitespace) {
-            temp = temp.replace(/^[\s\t]*/gm, ' ');
+            temp = temp.replace(/^[\s\t]+/gm, ' ');
           } else {
-            temp = temp.replace(/^[\s\t]*/gm, '');
+            temp = temp.replace(/^[\s\t]+/gm, '');
           }
 
 
