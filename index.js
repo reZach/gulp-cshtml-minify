@@ -132,6 +132,8 @@ module.exports = function (options) {
 
           // Collapse whitespace within tag attributes
           temp = temp.replace(/([a-zA-Z0-9-_]+)\s*=\s*([']|[\"])([\W\w]*?)\2/gm, function (_match, p1, p2, p3, _offset, _string) {
+			// if the attribute is blank we can leave it out completely (<div style="" class=""> becomes <div>)
+			if (p3 === "") return "";
             const quotesNeeded = p3.match(/[\s<>`\/=@]/gm);
             const value = options.urlSchemes ? p3.replace(/https?:\/\//gm, "//") : p3;
 
