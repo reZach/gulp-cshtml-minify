@@ -131,7 +131,9 @@ module.exports = function (options) {
           }
 
           // Collapse whitespace within tag attributes
-          temp = temp.replace(/\s*([a-zA-Z0-9-_]+)\s*=\s*([']|[\"])([\W\w]*?)\2(\s*>?)/gm, function (_match, p1, p2, p3, p4, _offset, _string) {
+          temp = temp.replace(/\s*([a-zA-Z0-9-_]+)\s*=\s*([']|[\"])([\W\w]*?)\2(\s*[>;,\}]?)/gm, function (_match, p1, p2, p3, p4, _offset, _string) {
+            // if the 'attribute' is proceeded by a semi-colon, comma, or curly-brace, then this wasn't an attribute, but instead it was a C# assignment
+            if (p4.includes(";") || p4.includes(",") || p4.includes("}")) return _match;
             // scrub the whitespace after the attribute, preserve the closing tag if it was present
             p4 = p4.includes(">") ? ">" : "";
             // if the attribute value is blank we can leave it out completely (<div style="" class=""> becomes <div>)
