@@ -131,16 +131,19 @@ module.exports = function (options) {
           }
 
           // Collapse whitespace within tag attributes
-          temp = temp.replace(/([a-zA-Z0-9-_]+)\s*=\s*([']|[\"])([\W\w]*?)\2/gm, function (_match, p1, p2, p3, _offset, _string) {
-			// if the attribute is blank we can leave it out completely (<div style="" class=""> becomes <div>)
-			if (p3 === "") return "";
+          temp = temp.replace(/\s*([a-zA-Z0-9-_]+)\s*=\s*([']|[\"])([\W\w]*?)\2(\s*>?)/gm, function (_match, p1, p2, p3, p4, _offset, _string) {
+            // scrub the whitespace after the attribute, preserve the closing tag if it was present
+            p4 = p4.includes(">") ? ">" : "";
+            // if the attribute value is blank we can leave it out completely (<div style="" class=""> becomes <div>)
+            if (p3 === "") return p4;
             const quotesNeeded = p3.match(/[\s<>`\/=@]/gm);
             const value = options.urlSchemes ? p3.replace(/https?:\/\//gm, "//") : p3;
 
+            // we matched all whitespace before and after the attribute so we need to add it back to the front and preserve the closing tag if present
             if (!quotesNeeded) {
-              return p1 + "=" + value;
+              return " " + p1 + "=" + value + p4;
             } else {
-              return p1 + "=" + p2 + value + p2;
+              return " " + p1 + "=" + p2 + value + p2 + p4;
             }
           });
 
