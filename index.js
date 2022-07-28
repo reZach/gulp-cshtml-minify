@@ -131,28 +131,35 @@ module.exports = function (options) {
           }
 
           // Collapse whitespace within tag attributes
-          temp = temp.replace(/([a-zA-Z0-9-_]+)\s*=\s*([']|[\"])([\W\w]*?)\2/gm, function (_match, p1, p2, p3, _offset, _string) {
+          temp = temp.replace(/\s*([a-zA-Z0-9-_]+)\s*=\s*(['\"])([\W\w]*?)\2(\s*[>;,\}]?)/gm, function (_match, p1, p2, p3, p4, _offset, _string) {
+            // if the 'attribute' is proceeded by a semi-colon, comma, or curly-brace, then this wasn't an attribute, but instead it was a C# assignment
+            if (p4.includes(";") || p4.includes(",") || p4.includes("}")) return _match;
+            // scrub the whitespace after the attribute, preserve the closing tag if it was present
+            p4 = p4.includes(">") ? ">" : "";
+            // if the attribute value is blank we can leave it out completely (<div style="" class=""> becomes <div>)
+            if (p3 === "") return p4;
             const quotesNeeded = p3.match(/[\s<>`\/=@]/gm);
             const value = options.urlSchemes ? p3.replace(/https?:\/\//gm, "//") : p3;
 
+            // we matched all whitespace before and after the attribute so we need to add it back to the front and preserve the closing tag if present
             if (!quotesNeeded) {
-              return p1 + "=" + value;
+              return " " + p1 + "=" + value + p4;
             } else {
-              return p1 + "=" + p2 + value + p2;
+              return " " + p1 + "=" + p2 + value + p2 + p4;
             }
           });
 
           // Replace whitespace at beginning of lines;
           // breaks razor @ directives if on!
           if (options.collapseWhitespace) {
-            temp = temp.replace(/^[\s\t]*/gm, ' ');
+            temp = temp.replace(/^[\s\t]+/gm, ' ');
           } else {
-            temp = temp.replace(/^[\s\t]*/gm, '');
+            temp = temp.replace(/^[\s\t]+/gm, '');
           }
 
 
           // Replace end of lines
-          temp = temp.replace(/^((?!@:|@model|@using|@inject|@section).+)(\r\n|\r|\n)/gm, "$1");
+          temp = temp.replace(/^((?!@page|@namespace|@model|@using|@inject|@section|@addTagHelper)((?!@:|\/\/).)+)(\r\n|\r|\n)/gm, "$1");
 
           // Replace any comments
           for (let i = 0; i < options.comments.length; i++) {
